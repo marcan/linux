@@ -25,6 +25,7 @@ properties:
           - samsung,s3c6400-uart
           - samsung,s5pv210-uart
           - samsung,exynos4210-uart
+          - apple,t8103-uart
 
   reg:
     maxItems: 1
@@ -97,6 +98,7 @@ allOf:
           contains:
             enum:
               - samsung,exynos4210-uart
+              - apple,t8103-uart
     then:
       properties:
         clocks:

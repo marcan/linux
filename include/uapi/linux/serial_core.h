@@ -277,4 +277,7 @@
 /* Freescale LINFlexD UART */
 #define PORT_LINFLEXUART	122
 
+/* Apple Silicon (M1/T8103) UART (Samsung variant) */
+#define PORT_APPLE	123
+
 #endif /* _UAPILINUX_SERIAL_CORE_H */
