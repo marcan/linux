@@ -60,7 +60,7 @@
 #define BAD_FIQ		2
 #define BAD_ERROR	3
 
-	.macro kernel_ventry, el, label, regsize = 64
+	.macro kernel_ventry, el, label, regsize = 64, altlabel = 0, alt = 0
 	.align 7
 #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
 	.if	\el == 0
@@ -87,7 +87,15 @@ alternative_else_nop_endif
 	tbnz	x0, #THREAD_SHIFT, 0f
 	sub	x0, sp, x0			// x0'' = sp' - x0' = (sp + x0) - sp = x0
 	sub	sp, sp, x0			// sp'' = sp' - x0 = (sp + x0) - x0 = sp
+	.if	\altlabel != 0
+	alternative_if \alt
+	b	el\()\el\()_\altlabel
+	alternative_else
 	b	el\()\el\()_\label
+	alternative_endif
+	.else
+	b	el\()\el\()_\label
+	.endif
 
 0:
 	/*
@@ -119,7 +127,15 @@ alternative_else_nop_endif
 	sub	sp, sp, x0
 	mrs	x0, tpidrro_el0
 #endif
+	.if	\altlabel != 0
+	alternative_if \alt
+	b	el\()\el\()_\altlabel
+	alternative_else
 	b	el\()\el\()_\label
+	alternative_endif
+	.else
+	b	el\()\el\()_\label
+	.endif
 	.endm
 
 	.macro tramp_alias, dst, sym
@@ -547,18 +563,21 @@ SYM_CODE_START(vectors)
 
 	kernel_ventry	1, sync				// Synchronous EL1h
 	kernel_ventry	1, irq				// IRQ EL1h
-	kernel_ventry	1, fiq_invalid			// FIQ EL1h
+							// FIQ EL1h
+	kernel_ventry	1, fiq_invalid, 64, irq, ARM64_NEEDS_FIQ
 	kernel_ventry	1, error			// Error EL1h
 
 	kernel_ventry	0, sync				// Synchronous 64-bit EL0
 	kernel_ventry	0, irq				// IRQ 64-bit EL0
-	kernel_ventry	0, fiq_invalid			// FIQ 64-bit EL0
+							// FIQ 64-bit EL0
+	kernel_ventry	0, fiq_invalid, 64, irq, ARM64_NEEDS_FIQ
 	kernel_ventry	0, error			// Error 64-bit EL0
 
 #ifdef CONFIG_COMPAT
 	kernel_ventry	0, sync_compat, 32		// Synchronous 32-bit EL0
 	kernel_ventry	0, irq_compat, 32		// IRQ 32-bit EL0
-	kernel_ventry	0, fiq_invalid_compat, 32	// FIQ 32-bit EL0
+							// FIQ 32-bit EL0
+	kernel_ventry	0, fiq_invalid_compat, 32, irq_compat, ARM64_NEEDS_FIQ
 	kernel_ventry	0, error_compat, 32		// Error 32-bit EL0
 #else
 	kernel_ventry	0, sync_invalid, 32		// Synchronous 32-bit EL0
