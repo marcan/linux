@@ -1237,6 +1237,29 @@ static bool has_cache_idc(const struct arm64_cpu_capabilities *entry,
 	return ctr & BIT(CTR_IDC_SHIFT);
 }
 
+static void cpu_sync_irq_to_fiq(struct arm64_cpu_capabilities const *cap)
+{
+	u64 daif = read_sysreg(daif);
+
+	/*
+	 * By this point in the boot process IRQs are likely masked and FIOs
+	 * aren't, so we need to sync things to avoid spurious early FIQs.
+	 */
+
+	if (daif & PSR_I_BIT)
+		daif |= PSR_F_BIT;
+	else
+		daif &= ~PSR_F_BIT;
+
+	write_sysreg(daif, daif);
+}
+
+static bool needs_fiq(const struct arm64_cpu_capabilities *entry, int __unused)
+{
+	/* All supported Apple cores need this */
+	return read_cpuid_implementor() == ARM_CPU_IMP_APPLE;
+}
+
 static void cpu_emulate_effective_ctr(const struct arm64_cpu_capabilities *__unused)
 {
 	/*
@@ -2154,6 +2177,15 @@ static const struct arm64_cpu_capabilities arm64_features[] = {
 		.matches = has_cpuid_feature,
 		.min_field_value = 1,
 	},
+#ifdef CONFIG_ARM64_FIQ_SUPPORT
+	{
+		.desc = "FIQs",
+		.capability = ARM64_NEEDS_FIQ,
+		.type = ARM64_CPUCAP_BOOT_CPU_FEATURE,
+		.matches = needs_fiq,
+		.cpu_enable = cpu_sync_irq_to_fiq,
+	},
+#endif
 	{},
 };
 

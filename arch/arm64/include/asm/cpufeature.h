@@ -716,6 +716,12 @@ static __always_inline bool system_uses_irq_prio_masking(void)
 	       cpus_have_const_cap(ARM64_HAS_IRQ_PRIO_MASKING);
 }
 
+static __always_inline bool system_uses_fiqs(void)
+{
+	return IS_ENABLED(CONFIG_ARM64_FIQ_SUPPORT) &&
+	       cpus_have_const_cap(ARM64_NEEDS_FIQ);
+}
+
 static inline bool system_supports_mte(void)
 {
 	return IS_ENABLED(CONFIG_ARM64_MTE) &&
