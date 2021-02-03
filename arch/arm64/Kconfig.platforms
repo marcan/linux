@@ -32,6 +32,7 @@ config ARCH_ALPINE
 config ARCH_APPLE
 	bool "Apple Silicon SoC family"
 	select GENERIC_IRQ_CHIP
+	select ARM64_FIQ_SUPPORT
 	help
 	  This enables support for Apple's in-house ARM SoC family, starting
 	  with the Apple M1.
