@@ -112,6 +112,9 @@ static inline void local_daif_restore(unsigned long flags)
 		 * So we don't need additional synchronization here.
 		 */
 		gic_write_pmr(pmr);
+	} else if (system_uses_fiqs()) {
+		/* On systems that use FIQs, disable FIQs if IRQs are disabled */
+		flags |= PSR_F_BIT;
 	}
 
 	write_sysreg(flags, daif);

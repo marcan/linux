@@ -42,7 +42,11 @@
 
 	/* IRQ is the lowest priority flag, unconditionally unmask the rest. */
 	.macro enable_da_f
+alternative_if ARM64_NEEDS_FIQ
+	msr	daifclr, #(8 | 4)
+alternative_else
 	msr	daifclr, #(8 | 4 | 1)
+alternative_endif
 	.endm
 
 /*
