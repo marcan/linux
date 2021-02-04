@@ -56,6 +56,8 @@ static struct resource *standard_resources;
 
 phys_addr_t __fdt_pointer __initdata;
 
+bool arm64_use_ne_io = false;
+
 /*
  * Standard memory resources
  */
@@ -197,6 +199,16 @@ static void __init setup_machine_fdt(phys_addr_t dt_phys)
 
 	pr_info("Machine model: %s\n", name);
 	dump_stack_set_arch_desc("%s (DT)", name);
+
+#ifdef CONFIG_ARCH_APPLE
+	/*
+	* Apple SoCs need to use nGnRnE mappings for MMIO, and this needs
+	* to be detected before earlycon is initialized.
+	*/
+	if (of_flat_dt_is_compatible(of_get_flat_dt_root(),
+				     "AAPL,arm-platform"))
+		arm64_use_ne_io = true;
+#endif
 }
 
 static void __init request_standard_resources(void)

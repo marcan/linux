@@ -94,7 +94,15 @@ enum fixed_addresses {
 #define FIXADDR_SIZE	(__end_of_permanent_fixed_addresses << PAGE_SHIFT)
 #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
 
-#define FIXMAP_PAGE_IO     __pgprot(PROT_DEVICE_nGnRE)
+/*
+ * We use nGnRE by default, but some platforms require nGnRnE for MMIO.
+ */
+extern bool arm64_use_ne_io;
+
+#define FIXMAP_PAGE_IO_DEFAULT	__pgprot(PROT_DEVICE_nGnRE)
+#define FIXMAP_PAGE_IO_STRICT	__pgprot(PROT_DEVICE_nGnRnE)
+#define FIXMAP_PAGE_IO		(arm64_use_ne_io ? FIXMAP_PAGE_IO_STRICT \
+						 : FIXMAP_PAGE_IO_DEFAULT)
 
 void __init early_fixmap_init(void);
 
