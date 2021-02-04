@@ -167,7 +167,14 @@ extern void __iomem *__ioremap(phys_addr_t phys_addr, size_t size, pgprot_t prot
 extern void iounmap(volatile void __iomem *addr);
 extern void __iomem *ioremap_cache(phys_addr_t phys_addr, size_t size);
 
-#define ioremap(addr, size)		__ioremap((addr), (size), __pgprot(PROT_DEVICE_nGnRE))
+/*
+ * Some platforms require nGnRnE for MMIO.
+ */
+extern bool arm64_use_ne_io;
+
+#define ioremap(addr, size)		__ioremap((addr), (size), \
+						  arm64_use_ne_io ? __pgprot(PROT_DEVICE_nGnRnE) \
+						                  : __pgprot(PROT_DEVICE_nGnRE))
 #define ioremap_wc(addr, size)		__ioremap((addr), (size), __pgprot(PROT_NORMAL_NC))
 
 /*
